@@ -272,7 +272,7 @@ const UserContext: NavContextMenuPatchCallback = (children, { user }: UserContex
 export default definePlugin({
     name: "LeashYourself",
     description: "Leash yourself to another user and be pulled into their voice channel",
-    authors: [{ name: "Mr_PanoZzz", id: 939129546551210056n }],
+    authors: [{ name: "Mr_PanoZzz", id: 1230932285067366400n }],
 
     settings,
 
