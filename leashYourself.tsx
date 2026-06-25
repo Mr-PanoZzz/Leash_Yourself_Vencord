@@ -281,7 +281,7 @@ export default definePlugin({
     name: "LeashYourself",
     description: "Leash yourself to another user and be pulled into their voice channel",
     authors: [{ name: "Mr_PanoZzz", id: 1230932285067366400n }],
-    version: "2.2.0",
+    version: "2.2.1",
 
     settings,
 
@@ -314,7 +314,7 @@ export default definePlugin({
 
                     if (settings.store.waitForSpace && !isMe && !channelId && oldChannelId && oldChannelId !== SelectedChannelStore.getVoiceChannelId()) {
                         const channel = ChannelStore.getChannel(oldChannelId);
-                        if (!channel || channel.type === 1 || channel.type === 3) continue; // Skip room/limit checks for DM/GDMs
+                        if (!channel || channel.type === 1 || channel.type === 3) continue; 
 
                         const channelVoiceStates = VoiceStateStore.getVoiceStatesForChannel(oldChannelId);
                         const memberCount = channelVoiceStates ? Object.keys(channelVoiceStates).length : null;
@@ -339,8 +339,8 @@ export default definePlugin({
                     }
                 }
             }
-        },
-    ],
+        }
+    }, // Fixed missing/mismatched closing bracket sequence here
 
     LeashIndicator() {
         const { plugins: { LeashYourself: { handlerUserId } } } = useSettings(["plugins.LeashYourself.handlerUserId"]);
@@ -377,5 +377,5 @@ export default definePlugin({
             </ErrorBoundary>,
             e.toolbar,
         ];
-    },
+    }
 });
