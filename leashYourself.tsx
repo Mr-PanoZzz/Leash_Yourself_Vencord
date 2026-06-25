@@ -178,10 +178,18 @@ function triggerLeashPull(targetChannelId: string | null = getChannelId(settings
         if (targetChannelId) {
             if (targetChannelId !== myChanId) {
                 const channel = ChannelStore.getChannel(targetChannelId);
+                if (!channel) return;
+
+                // Channel Types: 1 = DM, 3 = Group DM. DMs/GDMs don't have user limits or standard Connect overrides
+                const isPrivateChannel = channel.type === 1 || channel.type === 3;
+
                 const voiceStates = VoiceStateStore.getVoiceStatesForChannel(targetChannelId);
                 const memberCount = voiceStates ? Object.keys(voiceStates).length : null;
-                if (channel.type === 1 || PermissionStore.can(CONNECT, channel)) {
-                    if (channel.userLimit !== 0 && memberCount !== null && memberCount >= channel.userLimit && !PermissionStore.can(PermissionsBits.MOVE_MEMBERS, channel)) {
+                
+                // Allow join if it's a DM/Group Chat, or if user has explicit CONNECT permissions in a guild channel
+                if (isPrivateChannel || PermissionStore.can(CONNECT, channel)) {
+                    // Group DMs / DMs don't enforce channel.userLimit via Guild rules
+                    if (!isPrivateChannel && channel.userLimit !== 0 && memberCount !== null && memberCount >= channel.userLimit && !PermissionStore.can(PermissionsBits.MOVE_MEMBERS, channel)) {
                         Toasts.show({
                             message: "Handler’s channel is full",
                             id: Toasts.genId(),
@@ -193,7 +201,7 @@ function triggerLeashPull(targetChannelId: string | null = getChannelId(settings
                     Toasts.show({
                         message: "Your handler pulled you into their voice channel",
                         id: Toasts.genId(),
-                    type: Toasts.Type.SUCCESS
+                        type: Toasts.Type.SUCCESS
                     });
                 } else {
                     Toasts.show({
@@ -273,6 +281,7 @@ export default definePlugin({
     name: "LeashYourself",
     description: "Leash yourself to another user and be pulled into their voice channel",
     authors: [{ name: "Mr_PanoZzz", id: 1230932285067366400n }],
+    version: "2.2.0",
 
     settings,
 
@@ -305,6 +314,8 @@ export default definePlugin({
 
                     if (settings.store.waitForSpace && !isMe && !channelId && oldChannelId && oldChannelId !== SelectedChannelStore.getVoiceChannelId()) {
                         const channel = ChannelStore.getChannel(oldChannelId);
+                        if (!channel || channel.type === 1 || channel.type === 3) continue; // Skip room/limit checks for DM/GDMs
+
                         const channelVoiceStates = VoiceStateStore.getVoiceStatesForChannel(oldChannelId);
                         const memberCount = channelVoiceStates ? Object.keys(channelVoiceStates).length : null;
                         if (channel.userLimit !== 0 && memberCount !== null && memberCount === (channel.userLimit - 1) && !PermissionStore.can(PermissionsBits.MOVE_MEMBERS, channel)) {
@@ -329,7 +340,7 @@ export default definePlugin({
                 }
             }
         },
-    },
+    ],
 
     LeashIndicator() {
         const { plugins: { LeashYourself: { handlerUserId } } } = useSettings(["plugins.LeashYourself.handlerUserId"]);
